@@ -7,6 +7,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the size of the screen
     final size = MediaQuery.of(context).size;
     return Scaffold(
         body: SingleChildScrollView(
@@ -53,18 +54,21 @@ class _LoginFormState extends State<_LoginForm> {
       padding: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: [
+          // Email
           CustomInput(
             prefixIcon: Icons.mail,
             textController: emailController,
             keyboardType: TextInputType.emailAddress,
             hintText: 'Email',
           ),
+          // Password
           CustomInput(
             prefixIcon: Icons.lock,
             textController: passController,
             obscureText: true,
             hintText: 'Password',
           ),
+          // LoginButton
           BlueButton(
             onPressed: () {},
             text: 'Login',
