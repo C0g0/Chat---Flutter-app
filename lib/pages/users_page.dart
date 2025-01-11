@@ -1,5 +1,7 @@
 import 'package:chat/models/user.dart';
+import 'package:chat/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class UsersPage extends StatefulWidget {
@@ -23,16 +25,25 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Get the authService from the context to get the user information
+    final authService = Provider.of<AuthService>(context);
     return Scaffold(
         appBar: AppBar(
-          title: const Text('User Name'),
+          title: Text(authService.user!.name,
+              style: const TextStyle(color: Colors.black)),
           centerTitle: true,
           elevation: 1,
           backgroundColor: Colors.white,
           // IconButton to exit the app
           leading: IconButton(
             icon: const Icon(Icons.exit_to_app),
-            onPressed: () {},
+            onPressed: () {
+              // Call the logOut method from the authService
+              authService.logOut();
+
+              // Navigate to the login page
+              Navigator.pushReplacementNamed(context, 'login');
+            },
             color: Colors.black,
           ),
           actions: [

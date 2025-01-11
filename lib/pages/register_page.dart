@@ -1,5 +1,8 @@
+import 'package:chat/helpers/show_alert.dart';
+import 'package:chat/services/auth_service.dart';
 import 'package:chat/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -7,8 +10,12 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    // Create a ScrollController instance to control the scroll of the page
+    final ScrollController scrollController = ScrollController();
     return Scaffold(
         body: SingleChildScrollView(
+      controller: scrollController,
       physics: const BouncingScrollPhysics(),
       child: SizedBox(
         height: size.height,
@@ -16,7 +23,18 @@ class RegisterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Logo(size: size),
-            const _RegisterForm(),
+            Focus(
+                onFocusChange: (hasFocus) {
+                  if (hasFocus) {
+                    Future.delayed(const Duration(milliseconds: 200), () {
+                      scrollController.animateTo(
+                          scrollController.position.maxScrollExtent + 100,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut);
+                    });
+                  }
+                },
+                child: const _RegisterForm()),
             const Labels(
               question: 'Already have an account?',
               action: 'Login with your credentials',
@@ -34,9 +52,7 @@ class RegisterPage extends StatelessWidget {
 }
 
 class _RegisterForm extends StatefulWidget {
-  const _RegisterForm({
-    super.key,
-  });
+  const _RegisterForm();
 
   @override
   State<_RegisterForm> createState() => _RegisterFormState();
@@ -45,6 +61,7 @@ class _RegisterForm extends StatefulWidget {
 class _RegisterFormState extends State<_RegisterForm> {
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
     final TextEditingController nameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passController = TextEditingController();
@@ -71,7 +88,23 @@ class _RegisterFormState extends State<_RegisterForm> {
             hintText: 'Password',
           ),
           BlueButton(
-            onPressed: () {},
+            onPressed: authService.authenticating
+                ? null
+                : () async {
+                    final isRegisterOk = await authService.register(
+                        nameController.text.trim(),
+                        emailController.text.trim(),
+                        passController.text.trim());
+                    if (isRegisterOk) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.pushReplacementNamed(context, 'users');
+                    } else {
+                      // Show alert
+                      // ignore: use_build_context_synchronously
+                      showAlert(context, 'Register incorrect',
+                          'Check your name, email and password');
+                    }
+                  },
             text: 'Register',
           )
         ],

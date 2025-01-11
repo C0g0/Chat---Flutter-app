@@ -1,6 +1,9 @@
+import 'package:chat/helpers/show_alert.dart';
+import 'package:chat/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chat/widgets/widgets.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -9,46 +12,71 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get the size of the screen
     final size = MediaQuery.of(context).size;
+
+    // Create a ScrollController instance to control the scroll of the page
+    final ScrollController scrollController = ScrollController();
     return Scaffold(
-        body: SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: SizedBox(
-        height: size.height,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Logo(size: size),
-            const _LoginForm(),
-            const Labels(
-              question: 'Don\'t have an account?',
-              action: 'Create one now',
-              route: 'register',
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            controller: scrollController,
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: SizedBox(
+                height: size.height,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Logo(size: size),
+                    // Focus the input when the keyboard is shown and scroll the page
+                    Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            Future.delayed(const Duration(milliseconds: 200),
+                                () {
+                              scrollController.animateTo(
+                                  scrollController.position.maxScrollExtent +
+                                      100,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOut);
+                            });
+                          }
+                        },
+                        child: const _LoginForm()),
+                    const Labels(
+                      question: 'Don\'t have an account?',
+                      action: 'Create one now',
+                      route: 'register',
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 10),
+                      child: Text('Tems & Conditions'),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 10),
-              child: Text('Tems & Conditions'),
-            ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 }
 
 class _LoginForm extends StatefulWidget {
-  const _LoginForm({
-    super.key,
-  });
+  const _LoginForm();
 
   @override
   State<_LoginForm> createState() => _LoginFormState();
 }
 
 class _LoginFormState extends State<_LoginForm> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passController = TextEditingController();
+    // Get the AuthService instance
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -70,7 +98,24 @@ class _LoginFormState extends State<_LoginForm> {
           ),
           // LoginButton
           BlueButton(
-            onPressed: () {},
+            onPressed: authService.authenticating
+                ? null
+                : () async {
+                    FocusScope.of(context).unfocus();
+                    final isLoginOk = await authService.login(
+                        emailController.text.trim(),
+                        passController.text.trim());
+                    if (isLoginOk) {
+                      // Navigate to the users page
+                      // ignore: use_build_context_synchronously
+                      Navigator.pushReplacementNamed(context, 'users');
+                    } else {
+                      // Show an error message
+                      // ignore: use_build_context_synchronously
+                      showAlert(context, 'Login incorrect',
+                          'Check your email and password');
+                    }
+                  },
             text: 'Login',
           )
         ],

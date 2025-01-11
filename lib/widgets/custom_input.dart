@@ -6,6 +6,7 @@ class CustomInput extends StatelessWidget {
   final TextEditingController textController;
   final bool? obscureText;
   final TextInputType? keyboardType;
+  final FocusNode? focusNode;
   const CustomInput({
     super.key,
     this.keyboardType = TextInputType.text,
@@ -13,6 +14,7 @@ class CustomInput extends StatelessWidget {
     required this.textController,
     this.obscureText = false,
     required this.hintText,
+    this.focusNode,
   });
 
   @override
@@ -27,6 +29,7 @@ class CustomInput extends StatelessWidget {
               offset: const Offset(0, 5))
         ], borderRadius: BorderRadius.circular(30), color: Colors.white),
         child: TextFormField(
+          focusNode: focusNode,
           controller: textController,
           autocorrect: false,
           obscureText: obscureText ?? false,

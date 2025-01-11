@@ -3,18 +3,26 @@ import 'package:flutter/material.dart';
 class BlueButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
+  final MaterialColor? backgroundColor;
   const BlueButton({
     super.key,
     this.onPressed,
     required this.text,
+    this.backgroundColor = Colors.blue,
   });
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
       onPressed: onPressed,
-      style: const ButtonStyle(
-        elevation: WidgetStatePropertyAll(2),
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.grey; // Set the color for the disabled state
+          }
+          return Colors.blue; // Default color
+        }),
+        elevation: const WidgetStatePropertyAll(2),
       ),
       child: SizedBox(
           height: 50,
