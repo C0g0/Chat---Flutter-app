@@ -1,5 +1,6 @@
 import 'package:chat/helpers/show_alert.dart';
 import 'package:chat/services/auth_service.dart';
+import 'package:chat/services/socket_service.dart';
 import 'package:chat/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -61,7 +62,10 @@ class _RegisterForm extends StatefulWidget {
 class _RegisterFormState extends State<_RegisterForm> {
   @override
   Widget build(BuildContext context) {
+    // Get the AuthService instance
     final authService = Provider.of<AuthService>(context, listen: false);
+    // Get the SocketService instance
+    final socketService = Provider.of<SocketService>(context, listen: false);
     final TextEditingController nameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passController = TextEditingController();
@@ -96,6 +100,8 @@ class _RegisterFormState extends State<_RegisterForm> {
                         emailController.text.trim(),
                         passController.text.trim());
                     if (isRegisterOk) {
+                      // Connect to the socket server
+                      socketService.connect();
                       // ignore: use_build_context_synchronously
                       Navigator.pushReplacementNamed(context, 'users');
                     } else {

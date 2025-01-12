@@ -10,9 +10,10 @@ class Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Center(
       child: Container(
-          margin: const EdgeInsets.only(top: 50),
+          margin: EdgeInsets.only(top: size.height * 0.05),
           width: size.width * 0.6,
           child: const Image(
               image: AssetImage(

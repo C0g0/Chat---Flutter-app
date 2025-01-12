@@ -1,5 +1,6 @@
 import 'package:chat/helpers/show_alert.dart';
 import 'package:chat/services/auth_service.dart';
+import 'package:chat/services/socket_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chat/widgets/widgets.dart';
@@ -24,7 +25,7 @@ class LoginPage extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 20),
               child: SizedBox(
-                height: size.height,
+                height: size.height * 0.9,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -49,8 +50,8 @@ class LoginPage extends StatelessWidget {
                       action: 'Create one now',
                       route: 'register',
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
                       child: Text('Tems & Conditions'),
                     ),
                   ],
@@ -77,8 +78,13 @@ class _LoginFormState extends State<_LoginForm> {
     // Get the AuthService instance
     final authService = Provider.of<AuthService>(context);
 
+    // Get the SocketService instance
+    final socketService = Provider.of<SocketService>(context);
+
+    final size = MediaQuery.of(context).size;
+
     return Container(
-      margin: const EdgeInsets.only(top: 40),
+      margin: EdgeInsets.only(top: size.height * 0.05),
       padding: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: [
@@ -106,6 +112,8 @@ class _LoginFormState extends State<_LoginForm> {
                         emailController.text.trim(),
                         passController.text.trim());
                     if (isLoginOk) {
+                      // Connect the socket
+                      socketService.connect();
                       // Navigate to the users page
                       // ignore: use_build_context_synchronously
                       Navigator.pushReplacementNamed(context, 'users');

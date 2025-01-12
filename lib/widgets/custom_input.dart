@@ -19,9 +19,11 @@ class CustomInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Container(
         padding: const EdgeInsets.only(left: 5, top: 5, bottom: 5, right: 20),
         margin: const EdgeInsets.only(bottom: 20),
+        height: size.height * 0.06,
         decoration: BoxDecoration(boxShadow: [
           BoxShadow(
               blurRadius: 5,

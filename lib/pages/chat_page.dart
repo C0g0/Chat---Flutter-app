@@ -1,8 +1,13 @@
 import 'dart:io';
 
+import 'package:chat/models/messages_response.dart';
+import 'package:chat/services/auth_service.dart';
+import 'package:chat/services/chat_service.dart';
+import 'package:chat/services/socket_service.dart';
 import 'package:chat/widgets/chat_message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -14,16 +19,70 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   // Text controller to handle the text field
   final _textController = TextEditingController();
+
   // Focus node to handle the focus of the text field
   final _focusNode = FocusNode();
+
   // Boolean to check if the user is writing
   var _isWriting = false;
+
   // List to store the messages
   final List<ChatMessage> _messages = [];
+
+  // chat service
+  ChatService chatService = ChatService();
+
+  // socket service
+  SocketService socketService = SocketService();
+
+  AuthService authService = AuthService();
+
+  void _listenMessage(dynamic payload) {
+    ChatMessage message = ChatMessage(
+      texto: payload['message'],
+      uid: payload['from'],
+      animationController: AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 200)),
+    );
+
+    setState(() {
+      _messages.insert(0, message);
+    });
+
+    message.animationController.forward();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    chatService = Provider.of<ChatService>(context, listen: false);
+    socketService = Provider.of<SocketService>(context, listen: false);
+    authService = Provider.of<AuthService>(context, listen: false);
+
+    socketService.socket.on('personal-message', (data) => _listenMessage(data));
+
+    _loadMessages(chatService.userTo!.uid);
+  }
+
+  void _loadMessages(String uid) async {
+    List<Message> chat = await chatService.getMessages(uid);
+    final history = chat.map((message) => ChatMessage(
+          animationController: AnimationController(
+              vsync: this, duration: Duration(milliseconds: 0))
+            ..forward(),
+          texto: message.message,
+          uid: message.from,
+        ));
+    setState(() {
+      _messages.insertAll(0, history);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    final userTo = chatService.userTo;
     return Scaffold(
         appBar: AppBar(
           toolbarHeight: size.height * 0.1,
@@ -34,12 +93,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
               // CircleAvatar widget to display the user's profile picture
               CircleAvatar(
                 backgroundColor: Colors.blue[100],
-                child: const Text('Te'),
+                child: Text(userTo!.name.substring(0, 2)),
               ),
               const SizedBox(height: 3),
-              const Text(
-                'Luis Cogollo',
-                style: TextStyle(fontSize: 14),
+              Text(
+                userTo.name,
+                style: const TextStyle(fontSize: 14),
               )
             ],
           ),
@@ -126,7 +185,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     _focusNode.requestFocus();
     final newMessage = ChatMessage(
       texto: text,
-      uid: '123',
+      uid: authService.user!.uid,
       animationController: AnimationController(
           vsync: this, duration: const Duration(milliseconds: 500)),
     );
@@ -135,15 +194,22 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     setState(() {
       _isWriting = false;
     });
+
+    socketService.socket.emit('personal-message', {
+      'from': authService.user?.uid,
+      'to': chatService.userTo!.uid,
+      'message': text,
+    });
   }
 
   // Method to dispose the animation controllers
   @override
   void dispose() {
-    //TODO: implement dispose sockets
     for (ChatMessage message in _messages) {
       message.animationController.dispose();
     }
+    // To close the connection with the socket and stop to listen for messages
+    socketService.socket.off('personal-message');
     super.dispose();
   }
 }

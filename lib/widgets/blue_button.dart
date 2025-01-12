@@ -13,6 +13,7 @@ class BlueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return FilledButton(
       onPressed: onPressed,
       style: ButtonStyle(
@@ -25,7 +26,7 @@ class BlueButton extends StatelessWidget {
         elevation: const WidgetStatePropertyAll(2),
       ),
       child: SizedBox(
-          height: 50,
+          height: size.height * 0.06,
           width: double.infinity,
           child: Center(
               child: Text(

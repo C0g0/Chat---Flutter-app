@@ -19,9 +19,6 @@ class Labels extends StatelessWidget {
           style: const TextStyle(
               color: Colors.black45, fontSize: 15, fontWeight: FontWeight.w500),
         ),
-        const SizedBox(
-          height: 10,
-        ),
         TextButton(
           onPressed: () {
             Navigator.pushReplacementNamed(context, route);
